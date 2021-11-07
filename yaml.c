@@ -5,10 +5,9 @@
 #include <stdlib.h>
 #include <assert.h>
 
-typedef struct TypeNode TypeNode;
-
 const int STRING_LENGTH = 1024;
 
+typedef struct TypeNode TypeNode;
 struct TypeNode
 {
   // Node
@@ -30,14 +29,11 @@ struct TypeNode
 
 };
 
-
-// doesn't print styles.
 TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
 {
-
 	yaml_node_t *next_node_p;
   TypeNode *mynode;
-
+  
 	switch (node->type) {
 		case YAML_NO_NODE:
 			mynode = (TypeNode*) malloc(sizeof(TypeNode));
@@ -68,7 +64,6 @@ TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
 		case YAML_MAPPING_NODE:
       
 			mynode = (TypeNode*) malloc(sizeof(TypeNode));
-      printf("HERE%i\n",mynode);
       
       mynode->type = 1;
       mynode->first_keyvaluepair = (TypeNode*) malloc(sizeof(TypeNode));
@@ -88,71 +83,46 @@ TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
           keyvaluepair->next_keyvaluepair = (TypeNode*) malloc(sizeof(TypeNode));
           keyvaluepair = keyvaluepair->next_keyvaluepair;
         }
-        
 			}
 			break;
-      
     }  
-  
   return mynode;
 }
 
-TypeNode* LoadFile_c(const char *file_name)
+void set_error(const char *message, char *error){
+  for (int i = 0; i < strlen(message); i++){
+    error[i] = message[i];
+  }
+  for (int i = strlen(message); i< STRING_LENGTH; i++){
+    error[i] = ' '; 
+  }
+}
+
+TypeNode* LoadFile_c(const char *file_name, char *error)
 {
 	yaml_parser_t parser;
 	yaml_document_t document;
-	int error = 0;
   TypeNode* root;
-  
-
-	// printf("Loading '%s': \n", file_name);
 
 	FILE *file = fopen(file_name, "rb");
-	assert(file);
+  if (!file){
+    set_error("File does not exist.", error);
+    return NULL;
+  }
 
-	assert(yaml_parser_initialize(&parser));
-
+	yaml_parser_initialize(&parser);
 	yaml_parser_set_input_file(&parser, file);
 
-	int done = 0;
-
 	if (!yaml_parser_load(&parser, &document)) {
-		fprintf(stderr, "Failed to load document in %s\n", file_name);
-		error = 1;
+    set_error("Failed to load document.", error);
+		return NULL;
 	}
 
-	done = (!yaml_document_get_root_node(&document));
-
-
   root = read_value(&document, yaml_document_get_root_node(&document));
-  
 	yaml_document_delete(&document);
-
-
 	yaml_parser_delete(&parser);
-
-	assert(!fclose(file));
+	fclose(file);
   
+  set_error("", error);
   return root;
-}
-
-void tester(int* a){
-  
-  a = (int*) malloc(5*sizeof(int)); 
-  
-}
-
-
-int main()
-{
-
-  TypeNode *root = NULL;
-  root = LoadFile_c("../test.yaml");
-  printf("%i\n",root);
-  
-  int *a;
-  tester(a);
-  printf("%i\n",a);
-  
-  return 0;
 }
