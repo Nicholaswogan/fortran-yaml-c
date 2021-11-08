@@ -29,6 +29,22 @@ struct TypeNode
 
 };
 
+TypeNode* create_TypeNode(){
+  TypeNode *node;
+  node = (TypeNode*) malloc(sizeof(TypeNode));
+  node->string = NULL;
+  
+  node->first_keyvaluepair = NULL;
+  node->key = NULL;
+  node->value = NULL;
+  node->next_keyvaluepair = NULL;
+  
+  node->first_listitem = NULL;
+  node->node = NULL;
+  node->next_listitem = NULL;
+  return node;
+}
+
 TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
 {
 	yaml_node_t *next_node_p;
@@ -36,19 +52,19 @@ TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
   
 	switch (node->type) {
 		case YAML_NO_NODE:
-			mynode = (TypeNode*) malloc(sizeof(TypeNode));
+			mynode = create_TypeNode();
       mynode->type = 4;
 			break;
 		case YAML_SCALAR_NODE:
-      mynode = (TypeNode*) malloc(sizeof(TypeNode));
+      mynode = create_TypeNode();
       mynode->type = 3;
       mynode->string = (char*) malloc(STRING_LENGTH * sizeof(char));
       strcpy(mynode->string, node->data.scalar.value);
 			break;
 		case YAML_SEQUENCE_NODE:
-      mynode = (TypeNode*) malloc(sizeof(TypeNode));
+      mynode = create_TypeNode();
       mynode->type = 2;
-      mynode->first_listitem = (TypeNode*) malloc(sizeof(TypeNode));
+      mynode->first_listitem = create_TypeNode();
     
 			yaml_node_item_t *i_node;
       TypeNode *listitem = mynode->first_listitem;
@@ -56,17 +72,17 @@ TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
 				next_node_p = yaml_document_get_node(document_p, *i_node);
 				listitem->node = read_value(document_p, next_node_p);
         if (i_node < node->data.sequence.items.top - 1){
-          listitem->next_listitem = (TypeNode*) malloc(sizeof(TypeNode));
+          listitem->next_listitem = create_TypeNode();
           listitem = listitem->next_listitem;
         }
       }
 			break;
 		case YAML_MAPPING_NODE:
       
-			mynode = (TypeNode*) malloc(sizeof(TypeNode));
+			mynode = create_TypeNode();
       
       mynode->type = 1;
-      mynode->first_keyvaluepair = (TypeNode*) malloc(sizeof(TypeNode));
+      mynode->first_keyvaluepair = create_TypeNode();
       
       TypeNode *keyvaluepair = mynode->first_keyvaluepair;
 			yaml_node_pair_t *i_node_p;
@@ -80,13 +96,50 @@ TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
 				keyvaluepair->value = read_value(document_p, next_node_p);
         
         if (i_node_p < node->data.mapping.pairs.top - 1){
-          keyvaluepair->next_keyvaluepair = (TypeNode*) malloc(sizeof(TypeNode));
+          keyvaluepair->next_keyvaluepair = create_TypeNode();
           keyvaluepair = keyvaluepair->next_keyvaluepair;
         }
 			}
 			break;
     }  
   return mynode;
+}
+
+void destroy(TypeNode *node)
+{
+  if (node->type == 1){
+    TypeNode *pair;
+    TypeNode *next;
+    pair = node->first_keyvaluepair;    
+    while (pair){
+      next = pair->next_keyvaluepair;
+      destroy(pair->value);
+      free(pair->key);
+      free(pair->value);
+      free(pair);
+      pair = next;
+    }
+    node->first_keyvaluepair = NULL;
+  }
+  else if (node->type == 2){
+    TypeNode *item;
+    TypeNode *next;
+    item = node->first_listitem;
+    while (item){
+      next = item->next_listitem;
+      destroy(item->node);
+      free(item->node);
+      free(item);
+      item = next;
+    }
+    node->first_listitem = NULL;
+  }
+  else if (node->type == 3){
+    free(node->string);
+  }
+  else if (node->type == 4){
+    // nothing
+  }
 }
 
 void set_error(const char *message, char *error){
@@ -125,4 +178,11 @@ TypeNode* LoadFile_c(const char *file_name, char *error)
   
   set_error("", error);
   return root;
+}
+
+void DestroyNode(TypeNode *root)
+{
+  destroy(root);
+  free(root);
+  root = NULL;
 }

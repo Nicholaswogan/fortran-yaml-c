@@ -38,18 +38,11 @@ module yaml
       character(len=1, kind = c_char) :: error
       type(c_ptr) :: ptr
     end function
-    
-    ! subroutine LoadFile_c(filename, ptr, error) bind(C, name="LoadFile_c")
-    !   use, intrinsic :: iso_c_binding
-    !   character(len=1, kind = c_char), intent(in) :: filename
-    !   type(c_ptr), intent(out) :: ptr
-    !   character(len=1, kind = c_char), intent(in) :: error
-    ! end subroutine
-    ! 
-    ! subroutine DestroyNode(root) bind(C, name="DestroyNode")
-    !   use, intrinsic :: iso_c_binding
-    !   type(c_ptr), intent(inout) :: root
-    ! end subroutine
+
+    subroutine DestroyNode(root) bind(C, name="DestroyNode")
+      use, intrinsic :: iso_c_binding
+      type(c_ptr), value :: root
+    end subroutine
   end interface
   
 contains
@@ -139,12 +132,9 @@ contains
     if (c_associated(root_c)) then
       call read_value(root_c, root)
       call root%set_path("")
-      ! call DestroyNode(root_c)
+      call DestroyNode(root_c)
     endif
-    
-    
-  
-    
+
   end function
   
 end module
