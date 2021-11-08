@@ -153,6 +153,19 @@ void destroy(TypeNode *node)
   }
 }
 
+void append_filename(char* error, const char* file_name){
+  char *e = strchr(error, ':');
+  int ind = (int)(e - error);
+  int j = 0;
+  for (int i = ind+2; i < STRING_LENGTH; i++){
+    if (j > strlen(file_name)){
+      break;
+    }
+    error[i] = file_name[j];
+    j+=1;
+  }
+}
+
 TypeNode* LoadFile_c(const char *file_name, char *error)
 {
 	yaml_parser_t parser;
@@ -161,7 +174,8 @@ TypeNode* LoadFile_c(const char *file_name, char *error)
 
 	FILE *file = fopen(file_name, "rb");
   if (!file){
-    set_string("File does not exist.", error);
+    set_string("Tried to parse the following YAML file but it does not exist: ", error);
+    append_filename(error, file_name);
     return NULL;
   }
 
@@ -169,7 +183,10 @@ TypeNode* LoadFile_c(const char *file_name, char *error)
 	yaml_parser_set_input_file(&parser, file);
 
 	if (!yaml_parser_load(&parser, &document)) {
-    set_string("Failed to load document.", error);
+    set_string("Failed to parse the following YAML file: ", error);
+    append_filename(error, file_name);
+    yaml_parser_delete(&parser);
+  	fclose(file);
 		return NULL;
 	}
 
