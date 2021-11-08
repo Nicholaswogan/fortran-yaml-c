@@ -45,6 +45,15 @@ TypeNode* create_TypeNode(){
   return node;
 }
 
+void set_string(const char *message, char *string){
+  for (int i = 0; i < strlen(message); i++){
+    string[i] = message[i];
+  }
+  for (int i = strlen(message); i < STRING_LENGTH; i++){
+    string[i] = ' '; 
+  }
+}
+
 TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
 {
 	yaml_node_t *next_node_p;
@@ -59,7 +68,8 @@ TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
       mynode = create_TypeNode();
       mynode->type = 3;
       mynode->string = (char*) malloc(STRING_LENGTH * sizeof(char));
-      strcpy(mynode->string, node->data.scalar.value);
+      // strcpy(mynode->string, node->data.scalar.value);
+      set_string(node->data.scalar.value, mynode->string);
 			break;
 		case YAML_SEQUENCE_NODE:
       mynode = create_TypeNode();
@@ -90,7 +100,8 @@ TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
 				
         keyvaluepair->key = (char*) malloc(STRING_LENGTH * sizeof(char));
         next_node_p = yaml_document_get_node(document_p, i_node_p->key);
-        strcpy(keyvaluepair->key, next_node_p->data.scalar.value);
+        // strcpy(keyvaluepair->key, next_node_p->data.scalar.value);
+        set_string(next_node_p->data.scalar.value, keyvaluepair->key);
 
 				next_node_p = yaml_document_get_node(document_p, i_node_p->value);
 				keyvaluepair->value = read_value(document_p, next_node_p);
@@ -142,15 +153,6 @@ void destroy(TypeNode *node)
   }
 }
 
-void set_error(const char *message, char *error){
-  for (int i = 0; i < strlen(message); i++){
-    error[i] = message[i];
-  }
-  for (int i = strlen(message); i< STRING_LENGTH; i++){
-    error[i] = ' '; 
-  }
-}
-
 TypeNode* LoadFile_c(const char *file_name, char *error)
 {
 	yaml_parser_t parser;
@@ -159,7 +161,7 @@ TypeNode* LoadFile_c(const char *file_name, char *error)
 
 	FILE *file = fopen(file_name, "rb");
   if (!file){
-    set_error("File does not exist.", error);
+    set_string("File does not exist.", error);
     return NULL;
   }
 
@@ -167,7 +169,7 @@ TypeNode* LoadFile_c(const char *file_name, char *error)
 	yaml_parser_set_input_file(&parser, file);
 
 	if (!yaml_parser_load(&parser, &document)) {
-    set_error("Failed to load document.", error);
+    set_string("Failed to load document.", error);
 		return NULL;
 	}
 
@@ -176,7 +178,7 @@ TypeNode* LoadFile_c(const char *file_name, char *error)
 	yaml_parser_delete(&parser);
 	fclose(file);
   
-  set_error("", error);
+  set_string("", error);
   return root;
 }
 
