@@ -46,10 +46,11 @@ TypeNode* create_TypeNode(){
 }
 
 void set_string(const char *message, char *string){
-  for (int i = 0; i < strlen(message); i++){
+  int i;
+  for (i = 0; i < strlen(message); i++){
     string[i] = message[i];
   }
-  for (int i = strlen(message); i < STRING_LENGTH; i++){
+  for (i = strlen(message); i < STRING_LENGTH; i++){
     string[i] = ' '; 
   }
 }
@@ -157,7 +158,8 @@ void append_filename(char* error, const char* file_name){
   char *e = strchr(error, ':');
   int ind = (int)(e - error);
   int j = 0;
-  for (int i = ind+2; i < STRING_LENGTH; i++){
+  int i;
+  for (i = ind+2; i < STRING_LENGTH; i++){
     if (j > strlen(file_name)){
       break;
     }
