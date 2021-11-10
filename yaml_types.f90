@@ -96,6 +96,7 @@ module yaml_types
       procedure :: dump     => list_dump
       procedure :: set_path => list_set_path
       procedure :: finalize => list_finalize
+      final :: list_destroy
    end type
 
    type type_error
@@ -568,5 +569,19 @@ contains
       end do
       nullify(self%first)
    end subroutine list_finalize
+   
+   subroutine list_destroy(self)
+     type(type_list), intent(inout) :: self
+     
+     type (type_list_item),pointer :: item, next
+     
+     item => self%first
+     do while (associated(item))
+        next => item%next
+        deallocate(item)
+        item => next
+     end do
+     nullify(self%first)
+   end subroutine
 
 end module yaml_types
