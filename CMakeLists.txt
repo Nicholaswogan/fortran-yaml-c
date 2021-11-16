@@ -13,3 +13,6 @@ target_include_directories(fortran-yaml-c PUBLIC libyaml/include)
 
 add_executable(test_yaml test_yaml.f90)
 target_link_libraries(test_yaml fortran-yaml-c)
+
+add_executable(example example.f90)
+target_link_libraries(example fortran-yaml-c)
