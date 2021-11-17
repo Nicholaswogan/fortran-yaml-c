@@ -15,6 +15,7 @@ program example
   
   character(len=:), allocatable :: string
   real(real_kind) :: pi
+  logical :: happy
   
   root => parse("../test.yaml", error = error)
   if (error/='') then
@@ -33,6 +34,13 @@ program example
     endif
     
     print*,'pi =',pi
+    
+    happy = root%get_logical('happy-today',error=io_err)
+    if (associated(io_err)) then
+      print*,trim(io_err%message)
+      stop 1
+    endif
+    print*,"happy: ",happy
     
     dict => root%get_dictionary('reaction',required=.true.,error=io_err)
     if (associated(io_err)) then
