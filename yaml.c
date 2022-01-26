@@ -48,20 +48,23 @@ TypeNode* create_TypeNode(){
 void set_string(const char *message, char *string){
   int i;
   for (i = 0; i < strlen(message); i++){
+    if (i == STRING_LENGTH){
+      break;
+    }
     string[i] = message[i];
   }
   for (i = strlen(message); i < STRING_LENGTH; i++){
-    string[i] = ' '; 
+    string[i] = ' ';
   }
 }
 
 TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
 {
-	yaml_node_t *next_node_p;
+  yaml_node_t *next_node_p;
   TypeNode *mynode;
-  
+
 	switch (node->type) {
-		case YAML_NO_NODE:
+    case YAML_NO_NODE:
 			mynode = create_TypeNode();
       mynode->type = 4;
 			break;
@@ -69,14 +72,13 @@ TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
       mynode = create_TypeNode();
       mynode->type = 3;
       mynode->string = (char*) malloc(STRING_LENGTH * sizeof(char));
-      // strcpy(mynode->string, node->data.scalar.value);
-      set_string(node->data.scalar.value, mynode->string);
+      set_string((char *)node->data.scalar.value, mynode->string);
 			break;
 		case YAML_SEQUENCE_NODE:
       mynode = create_TypeNode();
       mynode->type = 2;
       mynode->first_listitem = create_TypeNode();
-    
+
 			yaml_node_item_t *i_node;
       TypeNode *listitem = mynode->first_listitem;
 			for (i_node = node->data.sequence.items.start; i_node < node->data.sequence.items.top; i_node++) {
@@ -89,31 +91,31 @@ TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
       }
 			break;
 		case YAML_MAPPING_NODE:
-      
+
 			mynode = create_TypeNode();
-      
+
       mynode->type = 1;
       mynode->first_keyvaluepair = create_TypeNode();
-      
+
       TypeNode *keyvaluepair = mynode->first_keyvaluepair;
 			yaml_node_pair_t *i_node_p;
 			for (i_node_p = node->data.mapping.pairs.start; i_node_p < node->data.mapping.pairs.top; i_node_p++) {
-				
+
         keyvaluepair->key = (char*) malloc(STRING_LENGTH * sizeof(char));
         next_node_p = yaml_document_get_node(document_p, i_node_p->key);
         // strcpy(keyvaluepair->key, next_node_p->data.scalar.value);
-        set_string(next_node_p->data.scalar.value, keyvaluepair->key);
+        set_string((char *)next_node_p->data.scalar.value, keyvaluepair->key);
 
 				next_node_p = yaml_document_get_node(document_p, i_node_p->value);
 				keyvaluepair->value = read_value(document_p, next_node_p);
-        
+
         if (i_node_p < node->data.mapping.pairs.top - 1){
           keyvaluepair->next_keyvaluepair = create_TypeNode();
           keyvaluepair = keyvaluepair->next_keyvaluepair;
         }
 			}
-			break;
-    }  
+      break;
+  }
   return mynode;
 }
 
@@ -122,7 +124,7 @@ void destroy(TypeNode *node)
   if (node->type == 1){
     TypeNode *pair;
     TypeNode *next;
-    pair = node->first_keyvaluepair;    
+    pair = node->first_keyvaluepair;
     while (pair){
       next = pair->next_keyvaluepair;
       destroy(pair->value);
@@ -170,33 +172,37 @@ void append_filename(char* error, const char* file_name){
 
 TypeNode* LoadFile_c(const char *file_name, char *error)
 {
-	yaml_parser_t parser;
-	yaml_document_t document;
+  yaml_parser_t parser;
+  yaml_document_t document;
   TypeNode* root;
 
-	FILE *file = fopen(file_name, "rb");
+  FILE *file = fopen(file_name, "rb");
   if (!file){
     set_string("Tried to parse the following YAML file but it does not exist: ", error);
     append_filename(error, file_name);
     return NULL;
   }
 
-	yaml_parser_initialize(&parser);
-	yaml_parser_set_input_file(&parser, file);
+  if (!yaml_parser_initialize(&parser)){
+    set_string("Failed to initalize yaml parser.", error);
+    fclose(file);
+    return NULL;
+  }
+  yaml_parser_set_input_file(&parser, file);
 
-	if (!yaml_parser_load(&parser, &document)) {
+  if (!yaml_parser_load(&parser, &document)) {
     set_string("Failed to parse the following YAML file: ", error);
     append_filename(error, file_name);
     yaml_parser_delete(&parser);
-  	fclose(file);
-		return NULL;
-	}
+    fclose(file);
+    return NULL;
+  }
 
   root = read_value(&document, yaml_document_get_root_node(&document));
 	yaml_document_delete(&document);
-	yaml_parser_delete(&parser);
-	fclose(file);
-  
+  yaml_parser_delete(&parser);
+  fclose(file);
+
   set_string("", error);
   return root;
 }
