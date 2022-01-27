@@ -1,7 +1,7 @@
 
 program test
   use, intrinsic :: iso_fortran_env, only:  output_unit
-  use yaml, only: parse, error_length
+  use fortran_yaml_c, only: parse, error_length
   use yaml_types, only: type_node
   
   class(type_node), pointer :: root

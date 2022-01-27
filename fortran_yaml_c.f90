@@ -1,4 +1,4 @@
-module yaml
+module fortran_yaml_c
   use iso_c_binding
   use yaml_types
   implicit none
@@ -110,7 +110,8 @@ contains
       ! is null
       allocate(type_null::node) 
     else
-      print*,'Problem!!!'
+      print*,"Something terrible broke in fortran-yaml-c. If this happens report a bug!"
+      stop 1
     endif
     
   end subroutine  
