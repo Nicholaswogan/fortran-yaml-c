@@ -10,11 +10,10 @@ module fortran_yaml_c
   
   public :: parse, error_length
   
-  type type_node_c
+  type, bind(c) :: type_node_c
     
     ! Node
     integer(c_int) :: T
-    ! character(len=string_length, kind=c_char) :: path 
     
     ! Scalar
     type(c_ptr) :: string = c_null_ptr
@@ -29,6 +28,7 @@ module fortran_yaml_c
     type(c_ptr) :: first_listitem = c_null_ptr
     type(c_ptr) :: node = c_null_ptr
     type(c_ptr) :: next_listitem = c_null_ptr
+    
   end type
   
   interface
