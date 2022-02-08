@@ -62,58 +62,57 @@ TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
 {
   yaml_node_t *next_node_p;
   TypeNode *mynode;
-
-	switch (node->type) {
+  switch (node->type) {
     case YAML_NO_NODE:
-			mynode = create_TypeNode();
+      mynode = create_TypeNode();
       mynode->type = 4;
-			break;
-		case YAML_SCALAR_NODE:
+      break;
+    case YAML_SCALAR_NODE:
       mynode = create_TypeNode();
       mynode->type = 3;
       mynode->string = (char*) malloc(STRING_LENGTH * sizeof(char));
       set_string((char *)node->data.scalar.value, mynode->string);
-			break;
-		case YAML_SEQUENCE_NODE:
+      break;
+    case YAML_SEQUENCE_NODE:
       mynode = create_TypeNode();
       mynode->type = 2;
       mynode->first_listitem = create_TypeNode();
 
-			yaml_node_item_t *i_node;
+      yaml_node_item_t *i_node;
       TypeNode *listitem = mynode->first_listitem;
-			for (i_node = node->data.sequence.items.start; i_node < node->data.sequence.items.top; i_node++) {
-				next_node_p = yaml_document_get_node(document_p, *i_node);
-				listitem->node = read_value(document_p, next_node_p);
+      for (i_node = node->data.sequence.items.start; i_node < node->data.sequence.items.top; i_node++) {
+        next_node_p = yaml_document_get_node(document_p, *i_node);
+        listitem->node = read_value(document_p, next_node_p);
         if (i_node < node->data.sequence.items.top - 1){
           listitem->next_listitem = create_TypeNode();
           listitem = listitem->next_listitem;
         }
       }
-			break;
-		case YAML_MAPPING_NODE:
+      break;
+    case YAML_MAPPING_NODE:
 
-			mynode = create_TypeNode();
+      mynode = create_TypeNode();
 
       mynode->type = 1;
       mynode->first_keyvaluepair = create_TypeNode();
 
       TypeNode *keyvaluepair = mynode->first_keyvaluepair;
-			yaml_node_pair_t *i_node_p;
-			for (i_node_p = node->data.mapping.pairs.start; i_node_p < node->data.mapping.pairs.top; i_node_p++) {
+      yaml_node_pair_t *i_node_p;
+      for (i_node_p = node->data.mapping.pairs.start; i_node_p < node->data.mapping.pairs.top; i_node_p++) {
 
         keyvaluepair->key = (char*) malloc(STRING_LENGTH * sizeof(char));
         next_node_p = yaml_document_get_node(document_p, i_node_p->key);
         // strcpy(keyvaluepair->key, next_node_p->data.scalar.value);
         set_string((char *)next_node_p->data.scalar.value, keyvaluepair->key);
 
-				next_node_p = yaml_document_get_node(document_p, i_node_p->value);
-				keyvaluepair->value = read_value(document_p, next_node_p);
+        next_node_p = yaml_document_get_node(document_p, i_node_p->value);
+        keyvaluepair->value = read_value(document_p, next_node_p);
 
         if (i_node_p < node->data.mapping.pairs.top - 1){
           keyvaluepair->next_keyvaluepair = create_TypeNode();
           keyvaluepair = keyvaluepair->next_keyvaluepair;
         }
-			}
+      }
       break;
   }
   return mynode;
@@ -199,7 +198,7 @@ TypeNode* LoadFile_c(const char *file_name, char *error)
   }
 
   root = read_value(&document, yaml_document_get_root_node(&document));
-	yaml_document_delete(&document);
+  yaml_document_delete(&document);
   yaml_parser_delete(&parser);
   fclose(file);
 
