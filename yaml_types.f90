@@ -322,12 +322,11 @@ contains
       class (type_dictionary),  intent(in) :: self
       character(len=*),         intent(in) :: key
       logical,                  intent(in) :: required
-      type(type_error),pointer             :: error
+      type(type_error),allocatable             :: error
       class (type_scalar),pointer          :: scalar
 
       class (type_node),pointer          :: node
 
-      nullify(error)
       nullify(scalar)
       node => self%get(key)
       if (required.and..not.associated(node)) then
@@ -355,12 +354,11 @@ contains
       class (type_dictionary),  intent(in) :: self
       character(len=*),         intent(in) :: key
       logical,                  intent(in) :: required
-      type(type_error),pointer             :: error
+      type(type_error),allocatable             :: error
       class (type_dictionary),pointer      :: dictionary
 
       class (type_node),pointer :: node
 
-      nullify(error)
       nullify(dictionary)
       node => self%get(key)
       if (required.and..not.associated(node)) then
@@ -385,12 +383,11 @@ contains
       class (type_dictionary),  intent(in) :: self
       character(len=*),         intent(in) :: key
       logical,                  intent(in) :: required
-      type(type_error),pointer             :: error
+      type(type_error),allocatable             :: error
       class (type_list),pointer            :: list
 
       class (type_node),pointer :: node
 
-      nullify(error)
       nullify(list)
       node => self%get(key)
       if (required.and..not.associated(node)) then
@@ -414,7 +411,7 @@ contains
       class (type_dictionary),  intent(in) :: self
       character(len=*),         intent(in) :: key
       character(len=*),optional,intent(in) :: default
-      type(type_error),pointer             :: error
+      type(type_error),allocatable             :: error
       character(len=string_length)         :: value
 
       class(type_scalar),pointer           :: node
@@ -428,7 +425,7 @@ contains
       class (type_dictionary),  intent(in) :: self
       character(len=*),         intent(in) :: key
       logical,         optional,intent(in) :: default
-      type(type_error),pointer             :: error
+      type(type_error),allocatable             :: error
       logical                              :: value
 
       class (type_scalar),pointer          :: node
@@ -450,7 +447,7 @@ contains
       class (type_dictionary),  intent(in) :: self
       character(len=*),         intent(in) :: key
       integer,         optional,intent(in) :: default
-      type(type_error),pointer             :: error
+      type(type_error),allocatable             :: error
       integer                              :: value
 
       class (type_scalar),pointer          :: node
@@ -471,7 +468,7 @@ contains
       class (type_dictionary),  intent(in) :: self
       character(len=*),         intent(in) :: key
       real(real_kind), optional,intent(in) :: default
-      type(type_error),pointer             :: error
+      type(type_error),allocatable             :: error
       real(real_kind)                      :: value
 
       class (type_scalar),pointer          :: node

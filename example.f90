@@ -11,7 +11,7 @@ program example
   class(type_dictionary), pointer :: dict
   class (type_list), pointer :: list
   class (type_list_item), pointer :: item
-  type (type_error), pointer :: io_err
+  type (type_error), allocatable :: io_err
   
   character(len=:), allocatable :: string
   real(real_kind) :: pi
@@ -28,7 +28,7 @@ program example
     print'(A,i3)','Number of key-value pairs in root dictionary = ',root%size()
     
     pi = root%get_real('pi',error=io_err)
-    if (associated(io_err)) then
+    if (allocated(io_err)) then
       print*,trim(io_err%message)
       stop 1
     endif
@@ -36,27 +36,27 @@ program example
     print*,'pi =',pi
     
     happy = root%get_logical('happy-today',error=io_err)
-    if (associated(io_err)) then
+    if (allocated(io_err)) then
       print*,trim(io_err%message)
       stop 1
     endif
     print*,"happy: ",happy
     
     dict => root%get_dictionary('reaction',required=.true.,error=io_err)
-    if (associated(io_err)) then
+    if (allocated(io_err)) then
       print*,trim(io_err%message)
       stop 1
     endif
     
     string = trim(dict%get_string("equation",error = io_err))
-    if (associated(io_err)) then
+    if (allocated(io_err)) then
       print*,trim(io_err%message)
       stop 1
     endif
     print*,"reaction equation = ",string
     
     list => root%get_list('groceries',required=.true.,error=io_err)
-    if (associated(io_err)) then
+    if (allocated(io_err)) then
       print*,trim(io_err%message)
       stop 1
     endif
