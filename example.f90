@@ -48,12 +48,13 @@ program example
       stop 1
     endif
     
-    string = trim(dict%get_string("equation",error = io_err))
+    string = dict%get_string("equation",error = io_err)
     if (allocated(io_err)) then
       print*,trim(io_err%message)
       stop 1
     endif
     print*,"reaction equation = ",string
+    deallocate(string)
     
     list => root%get_list('groceries',required=.true.,error=io_err)
     if (allocated(io_err)) then
@@ -67,7 +68,7 @@ program example
     do while(associated(item))
       select type (element => item%node)
       class is (type_scalar)
-        print'(3x,A)',trim(element%string)
+        print'(3x,A)',element%string
         item => item%next
       end select
     enddo

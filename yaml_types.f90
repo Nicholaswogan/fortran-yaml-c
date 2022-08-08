@@ -15,20 +15,17 @@
 ! -----------------------------------------------------------------------------
 
 module yaml_types
-
+   use iso_fortran_env, only: real_kind => real64
    implicit none
 
    private
 
-   public type_node,type_scalar,type_null,type_error,real_kind
-   public type_dictionary,type_key_value_pair
-   public type_list,type_list_item
-
-   integer,parameter :: string_length = 1024
-   integer,parameter :: real_kind = kind(1.0d0)
+   public :: type_node,type_scalar,type_null,type_error,real_kind
+   public :: type_dictionary,type_key_value_pair
+   public :: type_list,type_list_item
 
    type,abstract :: type_node
-      character(len=string_length) :: path = ''
+      character(:), allocatable :: path
    contains
       procedure (node_dump),deferred :: dump
       procedure                      :: set_path => node_set_path
@@ -44,7 +41,7 @@ module yaml_types
    end interface
 
    type,extends(type_node) :: type_scalar
-      character(len=string_length) :: string = ''
+      character(:), allocatable :: string
    contains
       procedure :: dump       => value_dump
       procedure :: to_logical => scalar_to_logical
@@ -58,7 +55,7 @@ module yaml_types
    end type
 
    type type_key_value_pair
-      character(len=string_length)       :: key   = ''
+      character(:), allocatable          :: key
       class (type_node),         pointer :: value => null()
       logical                            :: accessed = .false.
       type (type_key_value_pair),pointer :: next  => null()
@@ -101,7 +98,7 @@ module yaml_types
    end type
 
    type type_error
-      character(len=string_length) :: message
+      character(:), allocatable :: message
    end type
 
 contains
@@ -412,7 +409,7 @@ contains
       character(len=*),         intent(in) :: key
       character(len=*),optional,intent(in) :: default
       type(type_error),allocatable             :: error
-      character(len=string_length)         :: value
+      character(len=:), allocatable         :: value
 
       class(type_scalar),pointer           :: node
 

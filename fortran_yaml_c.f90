@@ -16,10 +16,12 @@ module fortran_yaml_c
     integer(c_int) :: T
     
     ! Scalar
+    integer(c_int) :: string_len
     type(c_ptr) :: string = c_null_ptr
     
     ! Dictionary
     type(c_ptr) :: first_keyvaluepair = c_null_ptr
+    integer(c_int) :: key_len
     type(c_ptr) :: key = c_null_ptr
     type(c_ptr) :: value = c_null_ptr
     type(c_ptr) :: next_keyvaluepair = c_null_ptr
@@ -63,8 +65,10 @@ contains
     
     type(c_ptr) :: pair_c, item_c
     type(type_node_c), pointer :: node_c, pair, item
-    character(len=string_length, kind=c_char), pointer :: key
-    character(len=string_length, kind=c_char), pointer :: string
+    character(len=1, kind=c_char), pointer :: key(:)
+    character(:), allocatable :: keyf
+    character(len=1, kind=c_char), pointer :: string(:)
+    character(:), allocatable :: stringf
     
     class (type_node), pointer :: list_item
     class (type_node), pointer :: value
@@ -77,11 +81,16 @@ contains
       pair_c = node_c%first_keyvaluepair
       do while(c_associated(pair_c))
         call c_f_pointer(pair_c, pair)
-        call c_f_pointer(pair%key, key)
+        
+        call c_f_pointer(pair%key, key, [pair%key_len+1]) ! buffer is len+1 to accomodate the terminating null char
+        if (allocated(keyf)) deallocate(keyf)
+        allocate(character(len=pair%key_len)::keyf)
+        call copy_string_ctof(key, keyf)
+
         call read_value(pair%value, value)
         select type (node)
           class is (type_dictionary)
-            call node%set(key, value)
+            call node%set(keyf, value)
         end select
         pair_c = pair%next_keyvaluepair
       enddo
@@ -101,10 +110,12 @@ contains
     elseif (node_c%T == 3) then
       ! is scalar
       allocate(type_scalar::node) 
-      call c_f_pointer(node_c%string, string)
+      call c_f_pointer(node_c%string, string, [node_c%string_len+1]) ! buffer is len+1 to accomodate the terminating null char
+      allocate(character(len=node_c%string_len)::stringf)
+      call copy_string_ctof(string, stringf)
       select type (node)
         class is (type_scalar)
-          node%string = string
+          node%string = stringf
       end select
     elseif (node_c%T == 4) then
       ! is null
@@ -137,5 +148,17 @@ contains
     endif
 
   end function
-  
+
+  subroutine copy_string_ctof(stringc,stringf)
+    ! utility function to convert c string to fortran string
+    character(len=*), intent(out) :: stringf
+    character(c_char), intent(in) :: stringc(*)
+    integer j
+    stringf = ''
+    char_loop: do j=1,len(stringf)
+       if (stringc(j)==c_null_char) exit char_loop
+       stringf(j:j) = stringc(j)
+    end do char_loop
+  end subroutine
+
 end module

@@ -14,10 +14,12 @@ struct TypeNode
   int type;
   
   // Scalar
+  int string_len;
   char *string;
   
   // Dictionary
   TypeNode *first_keyvaluepair;
+  int key_len;
   char *key;
   TypeNode *value;
   TypeNode *next_keyvaluepair;
@@ -69,9 +71,10 @@ TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
       break;
     case YAML_SCALAR_NODE:
       mynode = create_TypeNode();
-      mynode->type = 3;
-      mynode->string = (char*) malloc(STRING_LENGTH * sizeof(char));
-      set_string((char *)node->data.scalar.value, mynode->string);
+      mynode->type = 3;      
+      mynode->string_len = strlen((char *)node->data.scalar.value);
+      mynode->string = (char*) malloc((mynode->string_len+1) * sizeof(char)); // buffer is len+1 to accomodate the terminating null char
+      strncpy(mynode->string, (char *)node->data.scalar.value, (mynode->string_len+1)); 
       break;
     case YAML_SEQUENCE_NODE:
       mynode = create_TypeNode();
@@ -99,11 +102,12 @@ TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
       TypeNode *keyvaluepair = mynode->first_keyvaluepair;
       yaml_node_pair_t *i_node_p;
       for (i_node_p = node->data.mapping.pairs.start; i_node_p < node->data.mapping.pairs.top; i_node_p++) {
-
-        keyvaluepair->key = (char*) malloc(STRING_LENGTH * sizeof(char));
+        
         next_node_p = yaml_document_get_node(document_p, i_node_p->key);
-        // strcpy(keyvaluepair->key, next_node_p->data.scalar.value);
-        set_string((char *)next_node_p->data.scalar.value, keyvaluepair->key);
+
+        keyvaluepair->key_len = strlen((char *)next_node_p->data.scalar.value);
+        keyvaluepair->key = (char*) malloc((keyvaluepair->key_len+1) * sizeof(char)); // buffer is len+1 to accomodate the terminating null char
+        strncpy(keyvaluepair->key, (char *)next_node_p->data.scalar.value, (keyvaluepair->key_len+1));
 
         next_node_p = yaml_document_get_node(document_p, i_node_p->value);
         keyvaluepair->value = read_value(document_p, next_node_p);
