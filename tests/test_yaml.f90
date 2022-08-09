@@ -12,7 +12,7 @@ contains
     
     call file%parse("../test.yaml", err)
     if (allocated(err)) then
-      print*,trim(err)
+      print*,err
       stop 1
     endif
     

@@ -4,28 +4,30 @@ program example
   call main()
 contains
   subroutine main()
-    use, intrinsic :: iso_fortran_env, only:  output_unit
-    use fortran_yaml_c, only: parse, &
-                              type_node, type_dictionary, type_error, dp, &
+    use fortran_yaml_c, only: YamlFile, dp, &
+                              type_node, type_dictionary, type_error, &
                               type_list, type_list_item, type_scalar
     
-    class(type_node), pointer :: root
+    type(YamlFile), target :: file
     character(:), allocatable :: err
     
+    class(type_node), pointer :: root
     class(type_dictionary), pointer :: dict
-    class (type_list), pointer :: list
-    class (type_list_item), pointer :: item
-    type (type_error), allocatable :: io_err
+    class(type_list), pointer :: list
+    class(type_list_item), pointer :: item
+    type(type_error), allocatable :: io_err
     
-    character(len=:), allocatable :: string
+    character(:), allocatable :: string
     real(dp) :: pi
     logical :: happy
     
-    root => parse("../test.yaml", err)
+    call file%parse("../test.yaml", err)
     if (allocated(err)) then
-      print*,trim(err)
+      print*,err
       stop 1
     endif
+
+    root => file%root
     
     select type (root)
     class is (type_dictionary)
@@ -33,7 +35,7 @@ contains
       
       pi = root%get_real('pi',error=io_err)
       if (allocated(io_err)) then
-        print*,trim(io_err%message)
+        print*,io_err%message
         stop 1
       endif
       
@@ -41,20 +43,20 @@ contains
       
       happy = root%get_logical('happy-today',error=io_err)
       if (allocated(io_err)) then
-        print*,trim(io_err%message)
+        print*,io_err%message
         stop 1
       endif
       print*,"happy: ",happy
       
       dict => root%get_dictionary('reaction',required=.true.,error=io_err)
       if (allocated(io_err)) then
-        print*,trim(io_err%message)
+        print*,io_err%message
         stop 1
       endif
       
       string = dict%get_string("equation",error = io_err)
       if (allocated(io_err)) then
-        print*,trim(io_err%message)
+        print*,io_err%message
         stop 1
       endif
       print*,"reaction equation = ",string
@@ -62,7 +64,7 @@ contains
       
       list => root%get_list('groceries',required=.true.,error=io_err)
       if (allocated(io_err)) then
-        print*,trim(io_err%message)
+        print*,io_err%message
         stop 1
       endif
       
@@ -78,8 +80,6 @@ contains
       enddo
       
     end select
-    call root%finalize()
-    deallocate(root)
 
   end subroutine
 end program
