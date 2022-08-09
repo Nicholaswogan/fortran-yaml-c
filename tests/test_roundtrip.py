@@ -16,6 +16,7 @@ def test_roundtrip():
     fil.close()
 
     assert test2 == test2_copy
+    print("test_roundtrip passed!")
 
 if __name__ == "__main__":
     test_roundtrip()
