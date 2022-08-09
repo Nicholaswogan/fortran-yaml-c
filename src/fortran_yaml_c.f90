@@ -8,7 +8,15 @@ module fortran_yaml_c
   integer,parameter :: string_length = 1024
   integer,parameter :: error_length = 1024
   
-  public :: parse, error_length
+  public :: parse, error_length, YamlFile
+
+  type :: YamlFile
+    class(type_node), pointer :: root => null()
+  contains 
+    procedure :: parse => YamlFile_parse
+    procedure :: dump => YamlFile_dump
+    final :: YamlFile_final
+  end type
   
   type, bind(c) :: type_node_c
     
@@ -48,6 +56,30 @@ module fortran_yaml_c
   end interface
   
 contains
+
+  subroutine YamlFile_parse(self, path, error)
+    class(YamlFile), intent(inout) :: self
+    character(*), intent(in) :: path
+    character(len=string_length), intent(out) :: error
+    self%root => parse(path, error)
+  end subroutine
+
+  subroutine YamlFile_dump(self, unit, indent)
+    class(YamlFile), intent(inout) :: self
+    integer, intent(in) :: unit, indent
+    if (associated(self%root)) then
+      call self%root%dump(unit, indent)
+    endif
+  end subroutine
+
+  subroutine YamlFile_final(self)
+    type(YamlFile), intent(inout) :: self
+    if (associated(self%root)) then
+      call self%root%finalize()
+      deallocate(self%root)
+      nullify(self%root)
+    endif
+  end subroutine
   
   function LoadFile(filename, error) result(root)
     character(len=*), intent(in) :: filename
