@@ -5,9 +5,9 @@ program example
 contains
   subroutine main()
     use, intrinsic :: iso_fortran_env, only:  output_unit
-    use fortran_yaml_c, only: parse, error_length
-    use yaml_types, only: type_node, type_dictionary, type_error, dp, &
-                          type_list, type_list_item, type_scalar
+    use fortran_yaml_c, only: parse, error_length, &
+                              type_node, type_dictionary, type_error, dp, &
+                              type_list, type_list_item, type_scalar
     
     class(type_node), pointer :: root
     character(len=error_length) :: error

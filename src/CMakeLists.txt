@@ -2,7 +2,8 @@ add_library(libyaml_interface libyaml_interface.c)
 target_link_libraries(libyaml_interface yaml)
 
 add_library(fortran-yaml-c 
-  yaml_types.f90 
+  fortran_yaml_c_types.f90 
+  fortran_yaml_c_interface.f90
   fortran_yaml_c.f90 
 )
 target_link_libraries(fortran-yaml-c libyaml_interface)

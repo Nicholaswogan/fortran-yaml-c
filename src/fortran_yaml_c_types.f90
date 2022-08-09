@@ -1,5 +1,5 @@
 
-module yaml_types
+module fortran_yaml_c_types
   use iso_fortran_env, only: dp => real64
   implicit none
 
