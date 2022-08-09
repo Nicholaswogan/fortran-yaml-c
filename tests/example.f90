@@ -6,7 +6,7 @@ contains
   subroutine main()
     use, intrinsic :: iso_fortran_env, only:  output_unit
     use fortran_yaml_c, only: parse, error_length
-    use yaml_types, only: type_node, type_dictionary, type_error, real_kind, &
+    use yaml_types, only: type_node, type_dictionary, type_error, dp, &
                           type_list, type_list_item, type_scalar
     
     class(type_node), pointer :: root
@@ -18,7 +18,7 @@ contains
     type (type_error), allocatable :: io_err
     
     character(len=:), allocatable :: string
-    real(real_kind) :: pi
+    real(dp) :: pi
     logical :: happy
     
     root => parse("../test.yaml", error = error)
