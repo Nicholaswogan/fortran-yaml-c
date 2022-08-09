@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <assert.h>
 
-const int STRING_LENGTH = 1024;
-
 typedef struct TypeNode TypeNode;
 struct TypeNode
 {
@@ -45,19 +43,6 @@ TypeNode* create_TypeNode(){
   node->node = NULL;
   node->next_listitem = NULL;
   return node;
-}
-
-void set_string(const char *message, char *string){
-  int i;
-  for (i = 0; i < strlen(message); i++){
-    if (i == STRING_LENGTH){
-      break;
-    }
-    string[i] = message[i];
-  }
-  for (i = strlen(message); i < STRING_LENGTH; i++){
-    string[i] = ' ';
-  }
 }
 
 TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
@@ -159,21 +144,15 @@ void destroy(TypeNode *node)
   }
 }
 
-void append_filename(char* error, const char* file_name){
-  char *e = strchr(error, ':');
-  int ind = (int)(e - error);
-  int j = 0;
-  int i;
-  for (i = ind+2; i < STRING_LENGTH; i++){
-    if (j > strlen(file_name)){
-      break;
-    }
-    error[i] = file_name[j];
-    j+=1;
-  }
+char* concat(const char *s1, const char *s2)
+{
+  char *result = malloc(strlen(s1) + strlen(s2) + 1); // +1 for the null-terminator
+  strcpy(result, s1);
+  strcat(result, s2);
+  return result;
 }
 
-TypeNode* LoadFile_c(const char *file_name, char *error)
+TypeNode* LoadFile_c(const char *file_name, int* err_len, char **error)
 {
   yaml_parser_t parser;
   yaml_document_t document;
@@ -181,21 +160,22 @@ TypeNode* LoadFile_c(const char *file_name, char *error)
 
   FILE *file = fopen(file_name, "rb");
   if (!file){
-    set_string("Tried to parse the following YAML file but it does not exist: ", error);
-    append_filename(error, file_name);
+    *error = concat("Tried to parse the following YAML file but it does not exist: ", file_name);
+    *err_len = strlen(*error);
     return NULL;
   }
 
   if (!yaml_parser_initialize(&parser)){
-    set_string("Failed to initalize yaml parser.", error);
+    *error = concat("Failed to initalize yaml parser.", "");
+    *err_len = strlen(*error);
     fclose(file);
     return NULL;
   }
   yaml_parser_set_input_file(&parser, file);
 
   if (!yaml_parser_load(&parser, &document)) {
-    set_string("Failed to parse the following YAML file: ", error);
-    append_filename(error, file_name);
+    *error = concat("Failed to parse the following YAML file: ", file_name);
+    *err_len = strlen(*error);
     yaml_parser_delete(&parser);
     fclose(file);
     return NULL;
@@ -206,7 +186,9 @@ TypeNode* LoadFile_c(const char *file_name, char *error)
   yaml_parser_delete(&parser);
   fclose(file);
 
-  set_string("", error);
+  // no errors.
+  *err_len = 0;
+  *error = NULL;
   return root;
 }
 
@@ -215,4 +197,9 @@ void DestroyNode(TypeNode *root)
   destroy(root);
   free(root);
   root = NULL;
+}
+
+void DestroyChar(char *err)
+{
+  free(err);
 }

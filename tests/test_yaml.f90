@@ -5,14 +5,14 @@ program test_yaml
 contains
   subroutine main()
     use, intrinsic :: iso_fortran_env, only:  output_unit
-    use fortran_yaml_c, only: YamlFile, error_length
+    use fortran_yaml_c, only: YamlFile
     
     type(YamlFile) :: file
-    character(len=error_length) :: error
+    character(:), allocatable :: err
     
-    call file%parse("../test.yaml", error)
-    if (error/='') then
-      print*,trim(error)
+    call file%parse("../test.yaml", err)
+    if (allocated(err)) then
+      print*,trim(err)
       stop 1
     endif
     

@@ -16,7 +16,7 @@ module fortran_yaml_c
   public :: type_error
   
   ! parser
-  public :: parse, error_length
+  public :: parse
 
   ! File API
   public :: YamlFile
@@ -31,11 +31,11 @@ module fortran_yaml_c
   
 contains
 
-  subroutine YamlFile_parse(self, path, error)
+  subroutine YamlFile_parse(self, path, err)
     class(YamlFile), intent(inout) :: self
     character(*), intent(in) :: path
-    character(len=error_length), intent(out) :: error
-    self%root => parse(path, error)
+    character(:), allocatable, intent(out) :: err
+    self%root => parse(path, err)
   end subroutine
 
   subroutine YamlFile_dump(self, unit, indent)

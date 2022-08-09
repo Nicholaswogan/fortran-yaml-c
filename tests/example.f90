@@ -5,12 +5,12 @@ program example
 contains
   subroutine main()
     use, intrinsic :: iso_fortran_env, only:  output_unit
-    use fortran_yaml_c, only: parse, error_length, &
+    use fortran_yaml_c, only: parse, &
                               type_node, type_dictionary, type_error, dp, &
                               type_list, type_list_item, type_scalar
     
     class(type_node), pointer :: root
-    character(len=error_length) :: error
+    character(:), allocatable :: err
     
     class(type_dictionary), pointer :: dict
     class (type_list), pointer :: list
@@ -21,9 +21,9 @@ contains
     real(dp) :: pi
     logical :: happy
     
-    root => parse("../test.yaml", error = error)
-    if (error/='') then
-      print*,trim(error)
+    root => parse("../test.yaml", err)
+    if (allocated(err)) then
+      print*,trim(err)
       stop 1
     endif
     

@@ -5,9 +5,7 @@ module fortran_yaml_c_interface
 
   private
 
-  public :: parse, error_length
-
-  integer,parameter :: error_length = 1024
+  public :: parse
 
   type, bind(c) :: type_node_c
     
@@ -33,10 +31,11 @@ module fortran_yaml_c_interface
   end type
   
   interface
-    function LoadFile_c(filename, error) result(ptr) bind(C, name="LoadFile_c")
+    function LoadFile_c(filename, err_len, err) result(ptr) bind(C, name="LoadFile_c")
       use, intrinsic :: iso_c_binding
-      character(len=1, kind = c_char), intent(in) :: filename
-      character(len=1, kind = c_char) :: error
+      character(c_char), intent(in) :: filename(*)
+      integer(c_int) :: err_len
+      type(c_ptr) :: err
       type(c_ptr) :: ptr
     end function
 
@@ -44,18 +43,38 @@ module fortran_yaml_c_interface
       use, intrinsic :: iso_c_binding
       type(c_ptr), value :: root
     end subroutine
+
+    subroutine DestroyChar(err) bind(C, name="DestroyChar")
+      use, intrinsic :: iso_c_binding
+      type(c_ptr), value :: err
+    end subroutine
   end interface
   
 contains
   
-  function LoadFile(filename, error) result(root)
-    character(len=*), intent(in) :: filename
-    character(len=error_length, kind=c_char), intent(out) :: error
+  function LoadFile(filename, err) result(root)
+    character(*), intent(in) :: filename
+    character(:), allocatable, intent(out) :: err
     type(c_ptr) :: root
-    character(len=:, kind=c_char), allocatable :: filename_copy
-    filename_copy = filename//char(0)
-    root = LoadFile_c(filename_copy, error)
-    deallocate(filename_copy)
+
+    character(c_char), allocatable :: filename_c(:)
+    character(c_char), pointer :: err_c(:)
+    type(c_ptr) :: err_p
+    integer(c_int) :: err_len
+
+    ! prep the filename
+    allocate(filename_c(len(filename)+1))
+    call copy_string_ftoc(filename, filename_c)
+
+    root = LoadFile_c(filename_c, err_len, err_p)
+
+    if (c_associated(err_p)) then
+      allocate(character(err_len)::err)
+      call c_f_pointer(err_p, err_c, [err_len+1])
+      call copy_string_ctof(err_c, err)
+      call DestroyChar(err_p)
+    endif
+    
   end function
   
   recursive subroutine read_value(node_c_ptr, node)
@@ -64,9 +83,9 @@ contains
     
     type(c_ptr) :: pair_c, item_c
     type(type_node_c), pointer :: node_c, pair, item
-    character(len=1, kind=c_char), pointer :: key(:)
+    character(c_char), pointer :: key(:)
     character(:), allocatable :: keyf
-    character(len=1, kind=c_char), pointer :: string(:)
+    character(c_char), pointer :: string(:)
     character(:), allocatable :: stringf
     
     class (type_node), pointer :: list_item
@@ -126,20 +145,15 @@ contains
     
   end subroutine  
   
-  function parse(path, error) result(root)
+  function parse(path, err) result(root)
     character(len=*), intent(in) :: path
-    character(len=error_length), intent(out) :: error
+    character(:), allocatable, intent(out) :: err
     class (type_node), pointer :: root
     type(c_ptr) :: root_c
     
     nullify(root)
     
-    if (len_trim(path) >= error_length) then
-      error = "The path can not be longer than 1024 characters."
-      return
-    endif
-    
-    root_c = LoadFile(trim(path), error)
+    root_c = LoadFile(trim(path), err)
     if (c_associated(root_c)) then
       call read_value(root_c, root)
       call root%set_path("")
@@ -160,5 +174,18 @@ contains
     end do char_loop
   end subroutine
 
+  subroutine copy_string_ftoc(stringf, stringc)
+    ! utility function to convert c string to fortran string
+    character(len=*), intent(in) :: stringf
+    character(c_char), intent(out) :: stringc(:)
+    integer j, n, n1, n2
+    n1 = len_trim(stringf)  
+    n2 = size(stringc) - 1
+    n = min(n1, n2)
+    do j=1,n    
+      stringc(j) = stringf(j:j)   
+    end do
+    stringc(n+1) = c_null_char
+  end subroutine copy_string_ftoc
 
 end module
