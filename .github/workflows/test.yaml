@@ -19,9 +19,16 @@ jobs:
         compiler: gcc
         version: 11
 
+    - name: Setup Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.9
+
     - name: Install dependencies
       run: |
         sudo apt-get install valgrind
+        python -m pip install --upgrade pip
+        python -m pip install PyYAML
 
     - name: configure cmake
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
@@ -34,5 +41,6 @@ jobs:
       run: |
         ./tests/test_yaml
         valgrind --error-exitcode=1 --leak-check=full ./tests/test_yaml
+        python ../tests/test_roundtrip.py
         ./tests/example
         valgrind --error-exitcode=1 --leak-check=full ./tests/example

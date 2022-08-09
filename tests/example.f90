@@ -21,7 +21,7 @@ contains
     real(dp) :: pi
     logical :: happy
     
-    call file%parse("../test.yaml", err)
+    call file%parse("../tests/test1.yaml", err)
     if (allocated(err)) then
       print*,err
       stop 1

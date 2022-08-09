@@ -14,9 +14,6 @@ module fortran_yaml_c
   public :: type_scalar
   public :: type_null
   public :: type_error
-  
-  ! parser
-  public :: parse
 
   ! File API
   public :: YamlFile
@@ -26,6 +23,7 @@ module fortran_yaml_c
   contains 
     procedure :: parse => YamlFile_parse
     procedure :: dump => YamlFile_dump
+    procedure :: finalize => YamlFile_finalize
     final :: YamlFile_final
   end type
   
@@ -35,6 +33,7 @@ contains
     class(YamlFile), intent(inout) :: self
     character(*), intent(in) :: path
     character(:), allocatable, intent(out) :: err
+    if (associated(self%root)) call self%finalize()
     self%root => parse(path, err)
   end subroutine
 
@@ -46,13 +45,18 @@ contains
     endif
   end subroutine
 
-  subroutine YamlFile_final(self)
-    type(YamlFile), intent(inout) :: self
+  subroutine YamlFile_finalize(self)
+    class(YamlFile), intent(inout) :: self
     if (associated(self%root)) then
       call self%root%finalize()
       deallocate(self%root)
       nullify(self%root)
     endif
+  end subroutine
+
+  subroutine YamlFile_final(self)
+    type(YamlFile), intent(inout) :: self
+    call YamlFile_finalize(self)
   end subroutine
   
 end module
