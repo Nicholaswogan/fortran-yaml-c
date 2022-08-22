@@ -189,6 +189,7 @@ contains
     type(type_key_value_pair), pointer :: pair
 
     logical :: first
+    character(:), allocatable :: dump_key
 
     first = .true.
     pair => self%first
@@ -199,22 +200,57 @@ contains
         write (unit,'(a)',advance='NO') repeat(' ',indent)
       end if
 
+      dump_key = make_key_for_dump(pair%key)
+
       select type (value=>pair%value)
       class is (type_dictionary)
-        write (unit,'(a)') trim(pair%key)//':'
-        write (unit,'(a)',advance='NO') repeat(' ',indent+2)
-        call value%dump(unit,indent+2)
+        if (value%size() > 0) then
+          write (unit,'(a)') dump_key//':'
+          write (unit,'(a)',advance='NO') repeat(' ',indent+2)
+          call value%dump(unit,indent+2)
+        else
+          ! empty dictionary
+          write (unit,'(a)') dump_key//': {}'
+        endif
       class is (type_list)
-        write (unit,'(a)') trim(pair%key)//':'
-        write (unit,'(a)',advance='NO') repeat(' ',indent+2)
-        call value%dump(unit,indent+2)
+        if (value%size() > 0) then
+          write (unit,'(a)') dump_key//':'
+          write (unit,'(a)',advance='NO') repeat(' ',indent+2)
+          call value%dump(unit,indent+2)
+        else
+          ! empty list
+          write (unit,'(a)') dump_key//': []'
+        endif
       class default
-        write (unit,'(a)',advance='NO') trim(pair%key)//': '
-        call value%dump(unit,indent+len_trim(pair%key)+2)
+        write (unit,'(a)',advance='NO') dump_key//': '
+        call value%dump(unit,indent+len(dump_key)+2)
       end select
       pair => pair%next
     end do
   end subroutine
+
+  pure function make_key_for_dump(key) result(dump_key)
+    character(*), intent(in) :: key
+    character(:), allocatable :: dump_key
+
+    logical :: contains_whitespace
+    integer :: i
+
+    contains_whitespace = .false.
+    do i = 1,len(key)
+      if (key(i:i) == ' ') then
+        contains_whitespace = .true.
+        exit
+      endif
+    enddo
+
+    if (contains_whitespace) then
+      dump_key = '"'//key//'"'
+    else
+      dump_key = key
+    endif
+
+  end function
 
   recursive subroutine dictionary_flatten(self, target, prefix)
     class(type_dictionary), intent(in) :: self
@@ -539,7 +575,25 @@ contains
         write (unit,'(a)',advance='NO') repeat(' ',indent)
       end if
       write (unit,'(a)',advance='NO') '- '
-      call item%node%dump(unit,indent+2)
+
+      select type (value => item%node)
+      class is (type_dictionary)
+        if (value%size() > 0) then
+          call value%dump(unit,indent+2)
+        else
+          ! empty dictionary
+          write (unit,'(a)') '{}'
+        endif
+      class is (type_list)
+        if (value%size() > 0) then
+          call value%dump(unit,indent+2)
+        else
+          ! empty list
+          write (unit,'(a)') '[]'
+        endif
+      class default
+        call value%dump(unit,indent+2)
+      end select
       item => item%next
     end do
   end subroutine

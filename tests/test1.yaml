@@ -1,6 +1,12 @@
 pi: 3.14159
 happy-today: true
 groceries: [eggs, butter, oil, bread]
+list-that-is-empty: []
+"dictionary that-is-empty": {}
+another-test:
+  - []
+  - {}
+  - {"what is happening": [1,2,9]}
 to-do:
   - run a mile
   - go fishing

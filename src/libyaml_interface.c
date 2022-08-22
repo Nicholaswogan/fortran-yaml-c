@@ -64,42 +64,55 @@ TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
     case YAML_SEQUENCE_NODE:
       mynode = create_TypeNode();
       mynode->type = 2;
-      mynode->first_listitem = create_TypeNode();
 
-      yaml_node_item_t *i_node;
-      TypeNode *listitem = mynode->first_listitem;
-      for (i_node = node->data.sequence.items.start; i_node < node->data.sequence.items.top; i_node++) {
-        next_node_p = yaml_document_get_node(document_p, *i_node);
-        listitem->node = read_value(document_p, next_node_p);
-        if (i_node < node->data.sequence.items.top - 1){
-          listitem->next_listitem = create_TypeNode();
-          listitem = listitem->next_listitem;
+      if (node->data.sequence.items.top - node->data.sequence.items.start == 0) {
+        // empty list
+        mynode->first_listitem = NULL;
+      } 
+      else {
+        mynode->first_listitem = create_TypeNode();
+
+        yaml_node_item_t *i_node;
+        TypeNode *listitem = mynode->first_listitem;
+        for (i_node = node->data.sequence.items.start; i_node < node->data.sequence.items.top; i_node++) {
+          next_node_p = yaml_document_get_node(document_p, *i_node);
+          listitem->node = read_value(document_p, next_node_p);
+          if (i_node < node->data.sequence.items.top - 1){
+            listitem->next_listitem = create_TypeNode();
+            listitem = listitem->next_listitem;
+          }
         }
       }
       break;
     case YAML_MAPPING_NODE:
 
       mynode = create_TypeNode();
-
       mynode->type = 1;
-      mynode->first_keyvaluepair = create_TypeNode();
 
-      TypeNode *keyvaluepair = mynode->first_keyvaluepair;
-      yaml_node_pair_t *i_node_p;
-      for (i_node_p = node->data.mapping.pairs.start; i_node_p < node->data.mapping.pairs.top; i_node_p++) {
-        
-        next_node_p = yaml_document_get_node(document_p, i_node_p->key);
+      if (node->data.sequence.items.top - node->data.sequence.items.start == 0) {
+        // empty dictionary
+        mynode->first_keyvaluepair = NULL;
+      }
+      else {
+        mynode->first_keyvaluepair = create_TypeNode();
 
-        keyvaluepair->key_len = strlen((char *)next_node_p->data.scalar.value);
-        keyvaluepair->key = (char*) malloc((keyvaluepair->key_len+1) * sizeof(char)); // buffer is len+1 to accomodate the terminating null char
-        strncpy(keyvaluepair->key, (char *)next_node_p->data.scalar.value, (keyvaluepair->key_len+1));
+        TypeNode *keyvaluepair = mynode->first_keyvaluepair;
+        yaml_node_pair_t *i_node_p;
+        for (i_node_p = node->data.mapping.pairs.start; i_node_p < node->data.mapping.pairs.top; i_node_p++) {
+          
+          next_node_p = yaml_document_get_node(document_p, i_node_p->key);
 
-        next_node_p = yaml_document_get_node(document_p, i_node_p->value);
-        keyvaluepair->value = read_value(document_p, next_node_p);
+          keyvaluepair->key_len = strlen((char *)next_node_p->data.scalar.value);
+          keyvaluepair->key = (char*) malloc((keyvaluepair->key_len+1) * sizeof(char)); // buffer is len+1 to accomodate the terminating null char
+          strncpy(keyvaluepair->key, (char *)next_node_p->data.scalar.value, (keyvaluepair->key_len+1));
 
-        if (i_node_p < node->data.mapping.pairs.top - 1){
-          keyvaluepair->next_keyvaluepair = create_TypeNode();
-          keyvaluepair = keyvaluepair->next_keyvaluepair;
+          next_node_p = yaml_document_get_node(document_p, i_node_p->value);
+          keyvaluepair->value = read_value(document_p, next_node_p);
+
+          if (i_node_p < node->data.mapping.pairs.top - 1){
+            keyvaluepair->next_keyvaluepair = create_TypeNode();
+            keyvaluepair = keyvaluepair->next_keyvaluepair;
+          }
         }
       }
       break;
