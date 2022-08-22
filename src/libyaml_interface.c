@@ -32,6 +32,10 @@ struct TypeNode
 TypeNode* create_TypeNode(){
   TypeNode *node;
   node = (TypeNode*) malloc(sizeof(TypeNode));
+  if (!node) {
+    printf("malloc failed in fortran-yaml-c.");
+    exit(1);
+  }
   node->string = NULL;
   
   node->first_keyvaluepair = NULL;
@@ -59,6 +63,10 @@ TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
       mynode->type = 3;      
       mynode->string_len = strlen((char *)node->data.scalar.value);
       mynode->string = (char*) malloc((mynode->string_len+1) * sizeof(char)); // buffer is len+1 to accomodate the terminating null char
+      if (!mynode->string) {
+        printf("malloc failed in fortran-yaml-c.");
+        exit(1);
+      }
       strncpy(mynode->string, (char *)node->data.scalar.value, (mynode->string_len+1)); 
       break;
     case YAML_SEQUENCE_NODE:
@@ -104,6 +112,10 @@ TypeNode* read_value(yaml_document_t *document_p, yaml_node_t *node)
 
           keyvaluepair->key_len = strlen((char *)next_node_p->data.scalar.value);
           keyvaluepair->key = (char*) malloc((keyvaluepair->key_len+1) * sizeof(char)); // buffer is len+1 to accomodate the terminating null char
+          if (!keyvaluepair->key) {
+            printf("malloc failed in fortran-yaml-c.");
+            exit(1);
+          }
           strncpy(keyvaluepair->key, (char *)next_node_p->data.scalar.value, (keyvaluepair->key_len+1));
 
           next_node_p = yaml_document_get_node(document_p, i_node_p->value);
@@ -160,6 +172,10 @@ void destroy(TypeNode *node)
 char* concat(const char *s1, const char *s2)
 {
   char *result = malloc(strlen(s1) + strlen(s2) + 1); // +1 for the null-terminator
+  if (!result) {
+    printf("malloc failed in fortran-yaml-c.");
+    exit(1);
+  }
   strcpy(result, s1);
   strcat(result, s2);
   return result;
