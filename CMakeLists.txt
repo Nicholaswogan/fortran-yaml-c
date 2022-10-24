@@ -13,7 +13,7 @@ CPMAddPackage(
   NAME libyaml 
   VERSION 0.2.5
   GITHUB_REPOSITORY "yaml/libyaml"
-  GIT_TAG "0.2.5"
+  GIT_TAG "release/0.2.5"
   EXCLUDE_FROM_ALL ON
 )
 
