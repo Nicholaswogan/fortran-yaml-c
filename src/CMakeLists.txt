@@ -14,3 +14,7 @@ if ("${CMAKE_Fortran_COMPILER_ID}" MATCHES "GNU")
     target_compile_options(fortran-yaml-c PRIVATE -Wunused -fcheck=all)
   endif()
 endif()
+
+install(TARGETS libyaml_interface fortran-yaml-c DESTINATION lib)
+install(DIRECTORY ${CMAKE_BINARY_DIR}/modules DESTINATION .)
+
