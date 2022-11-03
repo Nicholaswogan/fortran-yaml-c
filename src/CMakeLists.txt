@@ -1,3 +1,5 @@
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+
 add_library(libyaml_interface libyaml_interface.c)
 target_link_libraries(libyaml_interface yaml)
 
