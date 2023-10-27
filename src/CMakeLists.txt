@@ -1,7 +1,10 @@
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
 add_library(libyaml_interface libyaml_interface.c)
-target_link_libraries(libyaml_interface yaml)
+if (DOWNLOAD_LIBYAML)
+  target_link_libraries(libyaml_interface yaml)
+else()
+  target_link_libraries(libyaml_interface PkgConfig::YAML)
+endif()
 
 add_library(fortran-yaml-c 
   fortran_yaml_c_types.f90 
@@ -16,7 +19,4 @@ if ("${CMAKE_Fortran_COMPILER_ID}" MATCHES "GNU")
     target_compile_options(fortran-yaml-c PRIVATE -Wunused -fcheck=all)
   endif()
 endif()
-
-install(TARGETS yaml libyaml_interface fortran-yaml-c DESTINATION lib)
-install(DIRECTORY ${CMAKE_BINARY_DIR}/modules DESTINATION .)
 
