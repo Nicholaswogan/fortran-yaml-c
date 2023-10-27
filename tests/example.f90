@@ -19,7 +19,7 @@ contains
     
     character(:), allocatable :: string
     real(dp) :: pi
-    logical :: happy
+    logical :: happy, sadness
     
     call file%parse("../tests/test1.yaml", err)
     if (allocated(err)) then
@@ -47,6 +47,13 @@ contains
         stop 1
       endif
       print*,"happy: ",happy
+
+      sadness = root%get_logical('sadness',error=io_err)
+      if (allocated(io_err)) then
+        print*,io_err%message
+        stop 1
+      endif
+      print*,"sadness: ",sadness
       
       dict => root%get_dictionary('reaction',required=.true.,error=io_err)
       if (allocated(io_err)) then

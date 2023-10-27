@@ -1,5 +1,6 @@
 pi: 3.14159
 happy-today: true
+sadness: off
 groceries: [eggs, butter, oil, bread]
 list-that-is-empty: []
 "dictionary that-is-empty": {}

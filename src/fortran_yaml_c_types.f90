@@ -277,8 +277,14 @@ contains
     logical, optional, intent(out) :: success
     logical :: value
 
-    character(len=20), parameter :: true_strings(3) = ["true","True",'TRUE']
-    character(len=20), parameter :: false_strings(3) = ["false","False",'FALSE']
+    character(len=20), parameter :: true_strings(*) = &
+      ['true','True','TRUE', &
+       'on  ','On  ','ON  ', &
+       'y   ','Y   ','yes ','Yes ','YES ']
+    character(len=20), parameter :: false_strings(*) = &
+      ["false","False",'FALSE', &
+       'off  ','Off  ','OFF  ', &
+       'n    ','N    ','no   ','No   ','NO   ']
 
     value = default
     
