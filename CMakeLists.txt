@@ -1,6 +1,6 @@
 
 cmake_minimum_required(VERSION "3.14")
-project (FORTRAN_YAML_C VERSION "0.2.5" LANGUAGES C Fortran)
+project (FORTRAN_YAML_C VERSION "0.2.6" LANGUAGES C Fortran)
 
 include(FortranCInterface)
 FortranCInterface_VERIFY()
