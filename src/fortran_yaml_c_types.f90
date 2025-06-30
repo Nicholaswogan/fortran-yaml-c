@@ -310,7 +310,7 @@ contains
 
     value = default
     read(self%string,*,iostat=ios) value
-    if (present(success)) success = (ios == 0)
+    if (present(success)) success = (ios == 0)  .and. (index(trim(adjustl(self%string)), " ") == 0)
   end function
 
   function scalar_to_real(self, default, success) result(value)
@@ -323,7 +323,7 @@ contains
 
     value = default
     read(self%string,*,iostat=ios) value
-    if (present(success)) success = (ios == 0)
+    if (present(success)) success = (ios == 0)  .and. (index(trim(adjustl(self%string)), " ") == 0)
   end function
 
   recursive subroutine node_set_path(self, path)
