@@ -195,7 +195,7 @@ TypeNode* LoadFile_c(const char *file_name, int* err_len, char **error)
   }
 
   if (!yaml_parser_initialize(&parser)){
-    *error = concat("Failed to initalize yaml parser.", "");
+    *error = concat("Failed to initialize yaml parser.", "");
     *err_len = strlen(*error);
     fclose(file);
     return NULL;
@@ -203,8 +203,42 @@ TypeNode* LoadFile_c(const char *file_name, int* err_len, char **error)
   yaml_parser_set_input_file(&parser, file);
 
   if (!yaml_parser_load(&parser, &document)) {
-    *error = concat("Failed to parse the following YAML file: ", file_name);
-    *err_len = strlen(*error);
+    const char *problem = parser.problem ? parser.problem : "Unknown error";
+
+    int needed = snprintf(NULL, 0,
+        "Parsing error:\n"
+        "   File    : %s\n"
+        "   Row     : %lu\n"
+        "   Column  : %lu\n"
+        "   Message : %s",
+        file_name,
+        parser.problem_mark.line + 1,
+        parser.problem_mark.column + 1,
+        problem);
+
+    if (needed < 0) {
+        fprintf(stderr, "snprintf sizing failed.\n");
+        exit(1);
+    }
+
+    *error = (char *) malloc((size_t)needed + 1);
+    if (!*error) {
+        fprintf(stderr, "malloc failed while reporting YAML error.\n");
+        exit(1);
+    }
+
+    snprintf(*error, (size_t)needed + 1,
+        "Parsing error:\n"
+        "   File    : %s\n"
+        "   Line    : %lu\n"
+        "   Column  : %lu\n"
+        "   Message : %s",
+        file_name,
+        parser.problem_mark.line + 1,
+        parser.problem_mark.column + 1,
+        problem);
+
+    *err_len = (int)strlen(*error);
     yaml_parser_delete(&parser);
     fclose(file);
     return NULL;
