@@ -78,6 +78,7 @@ module fortran_yaml_c_types
 
   type,extends(type_node) :: type_list
     type (type_list_item),pointer :: first => null()
+    type (type_list_item),pointer :: last  => null()
   contains
     procedure :: append   => list_append
     procedure :: dump     => list_dump
@@ -556,20 +557,16 @@ contains
     class(type_list), intent(inout) :: self
     class(type_node), target :: node
 
-    type(type_list_item), pointer :: item
-
     if (.not.associated(self%first)) then
-      ! This will be the first pair.
+      ! This will be the first item.
       allocate(self%first)
       self%first%node => node
+      self%last => self%first
     else
-      ! Try to find a pair with the same key, or failing that, the last pair.
-      item => self%first
-      do while (associated(item%next))
-        item => item%next
-      end do
-      allocate(item%next)
-      item%next%node => node
+      ! Append on the end of the list.
+      allocate(self%last%next)
+      self%last%next%node => node
+      self%last => self%last%next
     end if
   end subroutine
 
