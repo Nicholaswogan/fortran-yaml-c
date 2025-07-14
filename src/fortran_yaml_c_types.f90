@@ -276,22 +276,30 @@ contains
     logical, intent(in) :: default
     logical, optional, intent(out) :: success
     logical :: value
+    character(len=:), allocatable :: tmp_string
+    integer slen, tlen
+    integer, parameter :: clen = 20
 
-    character(len=20), parameter :: true_strings(*) = &
+    character(len=clen), parameter :: true_strings(*) = &
       ['true','True','TRUE', &
        'on  ','On  ','ON  ', &
        'y   ','Y   ','yes ','Yes ','YES ']
-    character(len=20), parameter :: false_strings(*) = &
+    character(len=clen), parameter :: false_strings(*) = &
       ["false","False",'FALSE', &
        'off  ','Off  ','OFF  ', &
        'n    ','N    ','no   ','No   ','NO   ']
 
+    slen = len(self%string)
+    tlen = max(clen,slen)
+    allocate(character(len=tlen) :: tmp_string)
+    tmp_string = self%string // repeat(' ', max(0, tlen-slen))
+
     value = default
-    
-    if (any(self%string == true_strings)) then
+
+    if (any(tmp_string == true_strings)) then
       value = .true.
       if (present(success)) success = .true.
-    elseif (any(self%string == false_strings)) then
+    elseif (any(tmp_string == false_strings)) then
       value = .false.
       if (present(success)) success = .true.
     else
@@ -310,7 +318,7 @@ contains
 
     value = default
     read(self%string,*,iostat=ios) value
-    if (present(success)) success = (ios == 0)
+    if (present(success)) success = (ios == 0)  .and. (index(trim(adjustl(self%string)), " ") == 0)
   end function
 
   function scalar_to_real(self, default, success) result(value)
@@ -323,7 +331,7 @@ contains
 
     value = default
     read(self%string,*,iostat=ios) value
-    if (present(success)) success = (ios == 0)
+    if (present(success)) success = (ios == 0)  .and. (index(trim(adjustl(self%string)), " ") == 0)
   end function
 
   recursive subroutine node_set_path(self, path)
