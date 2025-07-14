@@ -5,7 +5,8 @@ project (FORTRAN_YAML_C VERSION "0.2.6" LANGUAGES C Fortran)
 include(FortranCInterface)
 FortranCInterface_VERIFY()
 
-set(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/modules")
+include(GNUInstallDirs)
+set(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_INCLUDEDIR}")
 
 option(DOWNLOAD_LIBYAML "If ON, then libyaml will be downloaded and 
 built." ON)
